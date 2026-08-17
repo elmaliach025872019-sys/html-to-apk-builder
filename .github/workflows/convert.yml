@@ -36,18 +36,21 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Install Gradle and Accept Android Licenses
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gradle
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
       - name: Install Cordova
         run: npm install -g cordova
 
-      - name: Create Cordova Project
+      - name: Create Cordova Project & Inject HTML
         run: |
           cordova create myApp com.example.convertedapp "${{ github.event.inputs.app_name || 'ConvertedApp' }}"
           cd myApp
+          echo '${{ github.event.inputs.html_content || github.event.client_payload.html_content }}' > www/index.html
           cordova platform add android
-
-      - name: Inject HTML Content
-        run: |
-          echo '${{ github.event.inputs.html_content || github.event.client_payload.html_content }}' > myApp/www/index.html
 
       - name: Build Android APK
         run: |
