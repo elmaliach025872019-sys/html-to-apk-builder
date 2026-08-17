@@ -10,7 +10,7 @@
         textarea, input { width: 100%; margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         button { background-color: #28a745; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 4px; cursor: pointer; width: 100%; }
         button:hover { background-color: #218838; }
-        #status { margin-top: 15px; font-weight: bold; text-align: center; }
+        #status { margin-top: 15px; font-weight: bold; text-align: center; word-break: break-all; }
     </style>
 </head>
 <body>
@@ -18,6 +18,9 @@
 <div class="container">
     <h2>ממיר HTML לקובץ APK</h2>
     
+    <label for="userToken">GitHub Personal Access Token:</label>
+    <input type="password" id="userToken" placeholder="הדבק כאן את ה-Token שלך (ghp_...)">
+
     <label for="appName">שם האפליקציה:</label>
     <input type="text" id="appName" placeholder="הכנס שם לאפליקציה" value="MyApp">
 
@@ -31,9 +34,15 @@
 
 <script>
     async function triggerBuild() {
-        const appName = document.getElementById('appName').value;
-        const htmlContent = document.getElementById('htmlInput').value;
+        const token = document.getElementById('userToken').value.trim();
+        const appName = document.getElementById('appName').value.trim();
+        const htmlContent = document.getElementById('htmlInput').value.trim();
         const statusDiv = document.getElementById('status');
+
+        if (!token) {
+            alert('אנא הזן GitHub Token');
+            return;
+        }
 
         if (!htmlContent) {
             alert('אנא הזן קוד HTML');
@@ -42,16 +51,14 @@
 
         statusDiv.innerText = 'שולח לבנייה ב-GitHub Actions...';
 
-        // הזינו כאן את פרטי ה-Repository וה-Token
-        const OWNER = 'YOUR_GITHUB_USERNAME';
-        const REPO = 'YOUR_REPO_NAME';
-        const TOKEN = 'YOUR_GITHUB_PAT'; 
+        const OWNER = 'elmaliach025872019-sys';
+        const REPO = 'html-to-apk-builder'; // אם קראת למאגר בשם אחר, עדכן רק את השם הזה
 
         try {
             const response = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/convert.yml/dispatches`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `token ${TOKEN}`,
+                    'Authorization': `token ${token}`,
                     'Accept': 'application/vnd.github.v3+json',
                     'Content-Type': 'application/json'
                 },
@@ -67,7 +74,7 @@
             if (response.ok) {
                 statusDiv.innerText = 'הבנייה החלה בהצלחה! ניתן לעקוב אחר ההתקדמות בלשונית Actions ב-GitHub ולהוריד את ה-APK המוכן.';
             } else {
-                statusDiv.innerText = 'שגיאה בשליחת הבקשה. בדוק את ההרשאות והגדרות ה-Token.';
+                statusDiv.innerText = 'שגיאה בשליחת הבקשה. בדוק שה-Token שהזנת תקין ושיש לו הרשאות מתאימות.';
             }
         } catch (error) {
             statusDiv.innerText = 'תרחשה שגיאה בתקשורת עם השרת.';
